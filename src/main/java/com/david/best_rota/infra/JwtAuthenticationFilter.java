@@ -42,13 +42,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (user != null && jwtService.isTokenValid(jwt, user)) {
                 
-                // REGRA DE NEGÓCIO: Bloqueia rotas do /api/app/ se banido ou vencido
+
                 if (request.getRequestURI().startsWith("/api/app/")) {
-                    if (user.getStatusConta() == StatusConta.BANIDO ||
-                       (user.getAssinaturaExpiraEm() == null || user.getAssinaturaExpiraEm().isBefore(LocalDateTime.now()))) {
-                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Assinatura inativa ou conta banida");
-                        return;
+
+                    boolean isAdmin = user.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+
+                    if(!isAdmin){
+                        if (user.getStatusConta() == StatusConta.BANIDO ||
+                                (user.getAssinaturaExpiraEm() == null || user.getAssinaturaExpiraEm().isBefore(LocalDateTime.now()))) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Assinatura inativa ou conta banida");
+                            return;
+                        }
                     }
+
                 }
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

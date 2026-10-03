@@ -1,6 +1,7 @@
 package com.david.best_rota.services;
 
 import com.david.best_rota.entity.RefreshToken;
+import com.david.best_rota.entity.Usuario;
 import com.david.best_rota.repository.RefreshTokenRepository;
 import com.david.best_rota.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,10 @@ public class RefreshTokenService {
     @Autowired private UserRepository userRepository;
 
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = new RefreshToken();
+        Usuario usuario = userRepository.findById(userId).get();
+
+        RefreshToken refreshToken = refreshTokenRepository.findByUsuario(usuario)
+                .orElse(new RefreshToken());
         refreshToken.setUsuario(userRepository.findById(userId).get());
         refreshToken.setDataExpiracao(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
